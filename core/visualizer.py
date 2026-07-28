@@ -38,14 +38,13 @@ def plot_sequence(seq: Sequence[int], rainbow: bool = False,
     for i in range(len(seq) - 1):
         draw_arc(seq[i], seq[i + 1], i, ax, rainbow)
         
-    # Set limits to fit everything perfectly and keep aspect ratio equal
+    # Set limits to fit everything perfectly
     max_val = max(seq) if seq else 1
-    ax.set_xlim(-1, max_val + 1)
+    # The maximum step size is always the last step (len(seq)-1)
+    # So the max radius is exactly (len(seq)-1)/2
+    max_radius = (len(seq) - 1) / 2.0 if len(seq) > 1 else 1
     
-    if len(seq) > 1:
-        max_radius = max(abs(seq[i+1] - seq[i]) for i in range(len(seq)-1)) / 2
-    else:
-        max_radius = 1
+    ax.set_xlim(-1, max_val + 1)
     ax.set_ylim(-max_radius * 1.2, max_radius * 1.2)
     
     ax.set_aspect("equal")
@@ -54,7 +53,7 @@ def plot_sequence(seq: Sequence[int], rainbow: bool = False,
     return fig
 
 
-def animate_sequence(seq, interval_ms: int = 50, save_path: str | None = None, rainbow: bool = False):
+def animate_sequence(seq, interval_ms: int = 50, save_path: str | None = None, rainbow: bool = False, dynamic: bool = False):
     """Build a matplotlib FuncAnimation that draws arcs one by one."""
     from matplotlib.animation import FuncAnimation
 
@@ -64,18 +63,37 @@ def animate_sequence(seq, interval_ms: int = 50, save_path: str | None = None, r
     # Draw the number line for animation
     ax.axhline(0, color='black', linewidth=1.5, zorder=1)
     
-    max_val = max(seq) if seq else 1
-    ax.set_xlim(-1, max_val + 1)
-    if len(seq) > 1:
-        max_radius = max(abs(seq[i+1] - seq[i]) for i in range(len(seq)-1)) / 2
+    if not dynamic:
+        # Fixed view: calculate absolute max limits from the start
+        max_val = max(seq) if seq else 1
+        max_radius = (len(seq) - 1) / 2.0 if len(seq) > 1 else 1
+        ax.set_xlim(-1, max_val + 1)
+        ax.set_ylim(-max_radius * 1.2, max_radius * 1.2)
     else:
-        max_radius = 1
-    ax.set_ylim(-max_radius * 1.2, max_radius * 1.2)
+        # Dynamic view: start with a small window
+        ax.set_xlim(-1, 2)
+        ax.set_ylim(-1, 1)
+        
     ax.set_aspect("equal")
 
     def update(i):
         if i > 0:
             draw_arc(seq[i - 1], seq[i], i - 1, ax, rainbow)
+            
+        if dynamic:
+            # The step size is exactly i, so the radius is i/2
+            current_radius = i / 2.0 if i > 0 else 0.5
+            # Find the maximum value reached so far
+            current_max_val = max(seq[:i+1]) if i > 0 else 1
+            
+            # Add dynamic margins
+            margin_x = max(1, current_max_val * 0.05)
+            margin_y = max(1, current_radius * 0.2)
+            
+            # Expand the view smoothly
+            ax.set_xlim(-1 - margin_x, current_max_val + margin_x)
+            ax.set_ylim(-current_radius - margin_y, current_radius + margin_y)
+            
         ax.set_title(f"Recamán's Sequence — term {i} = {seq[i]}", fontsize=14)
         return []
 

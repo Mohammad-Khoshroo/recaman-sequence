@@ -23,6 +23,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--gif", type=Path, help="save animation to GIF")
     p.add_argument("--wav", type=Path, help="sonify sequence to WAV")
     p.add_argument("--rainbow", action="store_true", help="Color each arc with a different rainbow color")
+    p.add_argument("--dynamic", action="store_true", help="Dynamic zoom-out for GIF (camera follows the sequence step-by-step)")
+    
+    p.add_argument("--interval", type=int, default=50,
+                   help="delay between frames in GIF in milliseconds (default: 50, lower=faster, higher=slower)")
+    
     p.add_argument("--stats", action="store_true", help="print statistics")
     p.add_argument("--missing", type=int, metavar="K",
                    help="print integers in [0,K) missing from the sequence")
@@ -80,9 +85,15 @@ def main() -> None:
         print(f"Saved line plot to {save_path}")
         
     if args.gif:
-        print("Generating animation (this may take a moment)...")
+        print(f"Generating animation with interval {args.interval}ms (this may take a moment)...")
         save_path = output_dir / args.gif
-        animate_sequence(seq, save_path=str(save_path), rainbow=args.rainbow)
+        animate_sequence(
+            seq, 
+            save_path=str(save_path), 
+            rainbow=args.rainbow, 
+            dynamic=args.dynamic,
+            interval_ms=args.interval
+        )
         print(f"Saved GIF to {save_path}")
         
     if args.wav:  
@@ -100,7 +111,7 @@ def main() -> None:
     if args.show:
         import matplotlib.pyplot as plt
         if not (args.png or args.scatter or args.freq or args.line):
-            pass
+            plot_sequence(seq, rainbow=args.rainbow)
         plt.show()
 
 
