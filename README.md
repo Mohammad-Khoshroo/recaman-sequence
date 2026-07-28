@@ -80,22 +80,6 @@ recaman-simulation/
 
 ---
 
-## Installation
-
-```bash
-git clone <your-repo-url> recaman-simulation
-cd recaman-simulation
-
-python -m venv .venv
-source .venv/bin/activate        # on Windows: .venv\Scripts\activate
-
-pip install -r requirements.txt
-```
-
-Requires **Python 3.10+**.
-
----
-
 ## Usage
 
 All features are exposed through a single CLI. Run from the project root:
