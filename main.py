@@ -22,11 +22,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--line", type=Path, help="save connected line plot (values vs index) to PNG")
     p.add_argument("--gif", type=Path, help="save animation to GIF")
     p.add_argument("--wav", type=Path, help="sonify sequence to WAV")
-    p.add_argument("--rainbow", action="store_true", help="Color each arc with a beautiful rainbow spectrum")
+    p.add_argument("--rainbow", action="store_true", help="Color each arc with a beautiful vibrant spectrum (Spectral)")
     p.add_argument("--dark", action="store_true", help="Use dark mode for visualizations")
     p.add_argument("--dynamic", action="store_true", help="Dynamic zoom-out for GIF (camera follows the sequence step-by-step)")
     p.add_argument("--interval", type=int, default=50,
                    help="delay between frames in GIF in milliseconds (default: 50, lower=faster, higher=slower)")
+    
+    p.add_argument("--rotate", type=float, default=0.0, 
+                   help="Rotate the arc visualization (--png) by a given angle in degrees (e.g., 45, 90, 180)")
+    p.add_argument("--no-axis", action="store_true", 
+                   help="Hide axes and titles (Only affects --png and --gif outputs)")
+    
     p.add_argument("--stats", action="store_true", help="print statistics")
     p.add_argument("--missing", type=int, metavar="K",
                    help="print integers in [0,K) missing from the sequence")
@@ -41,7 +47,6 @@ def main() -> None:
     seq = recaman(args.terms)
     print("Generation complete.")
 
-    # Create output directory if it doesn't exist
     output_dir = Path("outputs")
     output_dir.mkdir(exist_ok=True)
 
@@ -57,7 +62,7 @@ def main() -> None:
     
     if args.png:
         print("Drawing arc visualization...")
-        fig = plot_sequence(seq, rainbow=args.rainbow, dark=args.dark)
+        fig = plot_sequence(seq, rainbow=args.rainbow, dark=args.dark, rotate_deg=args.rotate, show_axis=not args.no_axis)
         save_path = output_dir / args.png
         fig.savefig(save_path, dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
         print(f"Saved arc plot to {save_path}")
@@ -92,6 +97,7 @@ def main() -> None:
             rainbow=args.rainbow, 
             dynamic=args.dynamic,
             dark=args.dark,
+            show_axis=not args.no_axis,
             interval_ms=args.interval
         )
         print(f"Saved GIF to {save_path}")
@@ -110,8 +116,6 @@ def main() -> None:
         
     if args.show:
         import matplotlib.pyplot as plt
-        if not (args.png or args.scatter or args.freq or args.line):
-            plot_sequence(seq, rainbow=args.rainbow, dark=args.dark)
         plt.show()
 
 

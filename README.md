@@ -1,4 +1,4 @@
-# Recamán Sequence
+# Recamán Sequence Simulator
 
 A modular Python project that generates, visualizes, sonifies, and analyzes
 **Recamán's sequence** (OEIS [A005132](https://oeis.org/A005132)) — a deceptively
@@ -6,8 +6,8 @@ simple recurrence invented by the Colombian mathematician
 *Bernardo Recamán Santos* and named one of his favorites by Neil Sloane,
 founder of the OEIS.
 
-![Classic Arc Visualization](outputs/normal_100.png)
-
+![Classic Arc Visualization](outputs/dark_rainbow_100.png)
+![Classic Arc Visualization](outputs/spectral_art.png)
 
 ---
 
@@ -35,7 +35,8 @@ absolute step between consecutive terms is always exactly `n`
 
 ### Why it is interesting
 
-- **Visual beauty**
+- **Visual beauty** — connecting consecutive terms with semicircular arcs that
+  alternate above and below the number line produces intricate, self-avoiding patterns.
 - **An open conjecture** — Sloane originally conjectured that every
   non-negative integer eventually appears in the sequence, but later recanted
   on its certainty. Despite more than 10²³⁰ computed terms, the question
@@ -70,12 +71,28 @@ recaman-simulation/
 
 | Module | Responsibility |
 |---|---|
-| `core/sequence.py` | Generate the sequence. Uses an auxiliary `set` for O(1) membership tests, giving overall **O(n)** time and O(n) memory. The naive `proposal not in list` check degrades to O(n²). |
-| `core/visualizer.py` | Draw various visualizations: classic arcs, scatter plots, frequency mappings, and line charts. Produces animated GIFs with dynamic zoom and speed control. |
+| `core/sequence.py` | Generate the sequence. Uses an auxiliary `set` for O(1) membership tests, giving overall **O(n)** time and O(n) memory. |
+| `core/visualizer.py` | Draw various visualizations: classic arcs (with rotation & dark mode), scatter plots, frequency mappings, and line charts. Produces animated GIFs with dynamic zoom. |
 | `core/analyzer.py` | Compute basic statistics, find missing integers (relevant to the open coverage conjecture), and track first-occurrence indices. |
 | `core/audio.py` | Map sequence values to frequencies on a chromatic (or alternative) scale and render a WAV file. |
 | `utils/io.py` | Persist / load sequences as CSV or JSON. |
 | `main.py` | Argparse-based CLI exposing every feature. |
+
+---
+
+## Installation
+
+```bash
+git clone <your-repo-url> recaman-simulation
+cd recaman-simulation
+
+python -m venv .venv
+source .venv/bin/activate        # on Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+Requires **Python 3.10+**.
 
 ---
 
@@ -93,11 +110,17 @@ python -m main --help
 # Plot the first 100 terms with alternating colors and display
 python -m main -n 100 --png r100.png --stats --show
 
-# Plot a vibrant rainbow arc visualization
+# Plot a vibrant rainbow arc visualization (Spectral colormap)
 python -m main -n 200 --png rainbow_200.png --rainbow
 
+# Generate pure abstract art (Dark mode, Rainbow, No axes)
+python -m main -n 100 --png spectral_art.png --rainbow --dark --no-axis
+
+# Rotate the arc visualization by 90 degrees (Only applies to --png)
+python -m main -n 100 --png rotated_90.png --rotate 90
+
 # Save a dynamic animation where the camera follows the sequence step-by-step
-python -m main -n 100 --gif dynamic_rainbow_100.gif --dynamic --rainbow
+python -m main -n 100 --gif dynamic_rainbow_100.gif --dynamic --rainbow --dark
 
 # Create a slow animation (200ms delay between frames)
 python -m main -n 100 --gif slow_100.gif --dynamic --interval 200
@@ -128,9 +151,12 @@ python -m main -n 10000 --csv seq.csv --missing 200
 | `--line PATH` | Save a connected line plot of raw values vs. index. |
 | `--gif PATH` | Save an animated GIF of the arcs being drawn. |
 | `--wav PATH` | Sonify the sequence into a WAV audio file. |
-| `--rainbow` | Color each arc with a different vibrant color based on its index. |
+| `--rainbow` | Color each arc using the beautiful `Spectral` colormap. |
+| `--dark` | Use dark mode (black background, light text) for visualizations. |
 | `--dynamic` | Dynamic zoom-out for GIFs. The camera view expands step-by-step. |
 | `--interval INT` | Delay between frames in GIF in milliseconds (default: `50`, lower=faster, higher=slower). |
+| `--rotate FLOAT` | Rotate the arc visualization (`--png`) by a given angle in degrees (e.g., 45, 90, 180). |
+| `--no-axis` | Hide axes, number line, and titles. **Only affects `--png` and `--gif` outputs.** |
 | `--stats` | Print summary statistics (min, max, mean, std, unique count). |
 | `--missing K` | Print integers in `[0, K)` that do **not** appear in the sequence. |
 | `--show` | Display the matplotlib window interactively. |
@@ -141,43 +167,17 @@ python -m main -n 10000 --csv seq.csv --missing 200
 
 Here are some examples of what the simulator can produce. *(Replace these with your own generated image links)*
 
-### 1. Classic Arc Visualization (PNG)
-Standard alternating top/bottom arcs over a number line.
-
-### 2. Dynamic Rainbow Animation (GIF)
-The camera starts zoomed in and dynamically zooms out as the sequence grows.
+### Dynamic Rainbow Animation (GIF)
+The camera starts zoomed in and dynamically zooms out as the sequence grows. Arcs remain perfect circles thanks to `adjustable="datalim"`.
 ![Dynamic Rainbow GIF](outputs/dynamic_rainbow_100.gif)
 
-### 3. Scatter Plot (PNG)
+### Scatter Plot (PNG)
 Efficient visualization for large N (e.g., 1,000,000 terms).
 ![Scatter Plot 1M](outputs/scatter_1M.png)
 
-### 4. Line Plot (PNG)
+### Line Plot (PNG)
 Raw values of the sequence plotted as a connected line chart.
 ![Line Plot](outputs/line_100.png)
-
----
-
-## Example Output
-
-### `--stats` for `n = 100`
-
-```
-   n_terms: 100
-       min: 0
-       max: 199
-      mean: 73.41
-       std: 49.12
-    unique: 100
-```
-
-### First 12 terms (regression check)
-
-```
-[0, 1, 3, 6, 2, 7, 13, 20, 12, 21, 11, 22]
-```
-
-This matches the canonical values listed in OEIS and Wolfram MathWorld.
 
 ---
 
@@ -196,9 +196,11 @@ the total cost to **O(n)**. This matters sharply when `n` grows past ~10⁴:
 | 10,000 | ~4 s | ~0.01 s |
 | 100,000 | ~7 min | ~0.1 s |
 
-### Dynamic Zoom Logic
+### Dynamic Zoom Logic & Perfect Circles
 
-In Recamán's sequence, the step size at iteration `n` is exactly `n`. Therefore, the radius of the arc drawn at step `n` is always `n/2`. The `--dynamic` flag leverages this mathematical property: at frame `i`, it calculates the maximum value reached so far and sets the y-axis limits to `±(i/2)`, creating a smooth, step-by-step camera movement that perfectly tracks the drawing.
+In Recamán's sequence, the step size at iteration `n` is exactly `n`. Therefore, the radius of the arc drawn at step `n` is always `n/2`. The `--dynamic` flag leverages this mathematical property: at frame `i`, it calculates the maximum value reached so far and sets the y-axis limits to `±(i/2)`. 
+
+To ensure the arcs remain perfect circles during this dynamic zooming (and don't squish into ellipses), the visualization uses `ax.set_aspect("equal", adjustable="datalim")`. This forces Matplotlib to stretch the axes limits rather than distort the geometry of the drawn arcs.
 
 ### High-water marks
 
@@ -210,18 +212,15 @@ sequence (the "high-water marks"): `1, 4, 131, 99734, 181653, ...`
 ## Extension Paths
 
 1. **Generalized Recamán sequences** — Implement the "cousins" described by
-   Alekseyev, Myers, Schroeppel, Shannon, Sloane, and Zimmermann, such as
-   *Blanes-Mollís* or the doubly-additive variant.
+   Alekseyev, Myers, Schroeppel, Shannon, Sloane, and Zimmermann.
 2. **Coverage-conjecture experiments** — Generate 10⁵–10⁶ terms, partition
    `[0, K)` into buckets, and track how the set of missing integers evolves.
-   Useful empirical evidence for the open conjecture.
 3. **Performance benchmarking** — Compare the naive O(n²) implementation
    against the `set`-based O(n) version and plot runtime vs. `n`.
 4. **Interactive web visualization** — Port `visualizer.py` to `p5.js` for a
    live, browser-based experience (see The Coding Train's Challenge #110).
 5. **Musical scale exploration** — Replace the chromatic mapping in
-   `core/audio.py` with major, minor, pentatonic, or blues scales and compare
-   the resulting melodic character.
+   `core/audio.py` with major, minor, pentatonic, or blues scales.
 
 ---
 
@@ -234,7 +233,7 @@ python -m unittest discover tests
 `tests/test_sequence.py` verifies:
 
 - The first 12 terms match the canonical sequence.
-- The first 1000 terms contain no duplicates.
+- The absolute difference between consecutive terms is exactly `n` (`|a(n) - a(n-1)| = n`). *(Note: The sequence does contain duplicate values, so uniqueness is not tested).*
 - All terms are non-negative.
 
 ---
@@ -255,6 +254,7 @@ python -m unittest discover tests
 | **Cleve Moler (MathWorks)** | [blogs.mathworks.com/.../the-oeis-and-the-recaman-sequence](https://blogs.mathworks.com/cleve/2018/07/09/the-oeis-and-the-recaman-sequence) | Excellent analysis of sequence complexity, coverage conjecture, and MATLAB implementation by the creator of MATLAB. |
 | **John D. Cook** | [johndcook.com/blog/2025/05/05/recamans-sequence](https://www.johndcook.com/blog/2025/05/05/recamans-sequence) | Concise explanation and Python code for generating the classic arc visualization. |
 | **Science Spectrum** | [sciencespectrumu.com/.../ultimate-guide-to-recamáns-sequence](https://sciencespectrumu.com/the-ultimate-guide-to-recam%C3%A1ns-sequence-874cdbb28a4a) | An in-depth guide focusing on the intersection of the sequence's mathematical properties and its sonification. |
+| **SciPython** | [scipython.com/blog/recamans-sequence](https://scipython.com/blog/recamans-sequence) | The inspiration for the `Spectral` rainbow colormap and dark-mode art style used in this project. |
 
 ### 3. Academic & Research Papers
 | Resource | Link | Description |
@@ -266,5 +266,4 @@ python -m unittest discover tests
 | Resource | Link | Description |
 |:---|:---|:---|
 | **Numberphile: The Slightly Spooky Recamán Sequence** | [youtube.com/watch?v=DhFZfzOvNTU](https://www.youtube.com/watch?v=DhFZfzOvNTU) | The viral Numberphile video featuring Edmund Harriss, which popularized the sequence and its arc visualization. |
-| **The Coding Train: Coding Challenge #110** | [thecodingtrain.com/challenges/110-recamans-sequence](https://thecodingtrain.com/challenges/110-recamans-sequence) | Daniel Shiffman's implementation of the visualization and sonification in JavaScript (p5.js). Great for porting concepts. |
 | **Mr. P Solver: This Sequence of Numbers SOUNDS Good** | [youtube.com/watch?v=aGVWXhINpTE](https://www.youtube.com/watch?v=aGVWXhINpTE) | A detailed Python tutorial on sonifying the sequence using different musical scales. |
