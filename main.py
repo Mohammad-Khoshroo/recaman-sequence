@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from core.sequence import recaman
-from core.visualizer import plot_sequence, animate_sequence, plot_scatter
+from core.visualizer import plot_sequence, animate_sequence, plot_scatter, plot_frequency
 from core.analyzer import basic_stats, missing_integers
 from core.audio import sonify
 from utils.io import save_csv, save_json
@@ -18,6 +18,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", type=Path, help="write sequence to JSON")
     p.add_argument("--png", type=Path, help="save arc visualization to PNG")
     p.add_argument("--scatter", type=Path, help="save scatter plot to PNG (recommended for large N)")
+    p.add_argument("--freq", type=Path, help="save frequency mapping plot to PNG")
     p.add_argument("--gif", type=Path, help="save animation to GIF")
     p.add_argument("--wav", type=Path, help="sonify sequence to WAV")
     p.add_argument("--stats", action="store_true", help="print statistics")
@@ -62,6 +63,13 @@ def main() -> None:
         fig_s.savefig(save_path, dpi=200)
         print(f"Saved scatter plot to {save_path}")
         
+    if args.freq:
+        print("Drawing frequency plot...")
+        fig_f = plot_frequency(seq)
+        save_path = output_dir / args.freq
+        fig_f.savefig(save_path, dpi=150)
+        print(f"Saved frequency plot to {save_path}")
+        
     if args.gif:
         save_path = output_dir / args.gif
         animate_sequence(seq, save_path=str(save_path))
@@ -82,7 +90,9 @@ def main() -> None:
     if args.show:
         import matplotlib.pyplot as plt
         # Show whichever plot was generated last, or default to arc
-        if args.scatter:
+        if args.freq:
+            plot_frequency(seq)
+        elif args.scatter:
             plot_scatter(seq)
         else:
             plot_sequence(seq)

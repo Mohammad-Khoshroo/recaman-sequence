@@ -75,3 +75,31 @@ def plot_scatter(seq: Sequence[int],
     ax.grid(True, linestyle=':', alpha=0.5)
     fig.tight_layout()
     return fig
+
+
+def plot_frequency(seq: Sequence[int], 
+                   base_hz: float = 220.0, 
+                   scale: int = 12,
+                   title: str = "Recamán's Sequence Frequency Mapping") -> plt.Figure:
+    """
+    Plots the sequence mapped to musical frequencies over time.
+    This visualizes the sonification (audio) data as a bar chart.
+    """
+    # Import the frequency mapper from audio module
+    from core.audio import _to_frequency
+    
+    n_terms = len(seq)
+    t = np.arange(n_terms)
+    freqs = np.array([_to_frequency(v, base_hz, scale) for v in seq])
+    
+    fig, ax = plt.subplots(figsize=(12, 6))
+    # Draw vertical lines (like an equalizer/piano roll)
+    ax.vlines(t, 0, freqs, colors='darkred', linewidths=2)
+    ax.scatter(t, freqs, color='navy', s=10)
+    
+    ax.set_title(f"{title} (N = {n_terms})")
+    ax.set_xlabel("Time Step (n)")
+    ax.set_ylabel("Frequency (Hz)")
+    ax.grid(True, axis='y', linestyle=':', alpha=0.5)
+    fig.tight_layout()
+    return fig
