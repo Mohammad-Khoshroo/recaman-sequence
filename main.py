@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from core.sequence import recaman
-from core.visualizer import plot_sequence, animate_sequence, plot_scatter, plot_frequency
+from core.visualizer import plot_sequence, animate_sequence, plot_scatter, plot_frequency, plot_line
 from core.analyzer import basic_stats, missing_integers
 from core.audio import sonify
 from utils.io import save_csv, save_json
@@ -19,8 +19,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--png", type=Path, help="save arc visualization to PNG")
     p.add_argument("--scatter", type=Path, help="save scatter plot to PNG (recommended for large N)")
     p.add_argument("--freq", type=Path, help="save frequency mapping plot to PNG")
+    p.add_argument("--line", type=Path, help="save connected line plot (values vs index) to PNG")
     p.add_argument("--gif", type=Path, help="save animation to GIF")
     p.add_argument("--wav", type=Path, help="sonify sequence to WAV")
+    p.add_argument("--rainbow", action="store_true", help="Color each arc with a different rainbow color")
     p.add_argument("--stats", action="store_true", help="print statistics")
     p.add_argument("--missing", type=int, metavar="K",
                    help="print integers in [0,K) missing from the sequence")
@@ -51,9 +53,9 @@ def main() -> None:
     
     if args.png:
         print("Drawing arc visualization...")
-        fig = plot_sequence(seq)
+        fig = plot_sequence(seq, rainbow=args.rainbow)
         save_path = output_dir / args.png
-        fig.savefig(save_path, dpi=150)
+        fig.savefig(save_path, dpi=150, bbox_inches='tight')
         print(f"Saved arc plot to {save_path}")
         
     if args.scatter:
@@ -70,9 +72,17 @@ def main() -> None:
         fig_f.savefig(save_path, dpi=150)
         print(f"Saved frequency plot to {save_path}")
         
+    if args.line:
+        print("Drawing line plot...")
+        fig_l = plot_line(seq)
+        save_path = output_dir / args.line
+        fig_l.savefig(save_path, dpi=150)
+        print(f"Saved line plot to {save_path}")
+        
     if args.gif:
+        print("Generating animation (this may take a moment)...")
         save_path = output_dir / args.gif
-        animate_sequence(seq, save_path=str(save_path))
+        animate_sequence(seq, save_path=str(save_path), rainbow=args.rainbow)
         print(f"Saved GIF to {save_path}")
         
     if args.wav:  
@@ -89,13 +99,8 @@ def main() -> None:
         
     if args.show:
         import matplotlib.pyplot as plt
-        # Show whichever plot was generated last, or default to arc
-        if args.freq:
-            plot_frequency(seq)
-        elif args.scatter:
-            plot_scatter(seq)
-        else:
-            plot_sequence(seq)
+        if not (args.png or args.scatter or args.freq or args.line):
+            pass
         plt.show()
 
 
