@@ -6,6 +6,9 @@ simple recurrence invented by the Colombian mathematician
 *Bernardo Recamán Santos* and named one of his favorites by Neil Sloane,
 founder of the OEIS.
 
+![Classic Arc Visualization](outputs/normal_100.png)
+
+
 ---
 
 ## Mathematical Definition
@@ -32,10 +35,7 @@ absolute step between consecutive terms is always exactly `n`
 
 ### Why it is interesting
 
-- **Visual beauty** — connecting consecutive terms with semicircular arcs that
-  alternate above and below the number line (a visualization popularized by
-  Edmund Harriss via a [Numberphile video](https://www.numberphile.com/))
-  produces intricate, self-avoiding patterns.
+- **Visual beauty**
 - **An open conjecture** — Sloane originally conjectured that every
   non-negative integer eventually appears in the sequence, but later recanted
   on its certainty. Despite more than 10²³⁰ computed terms, the question
@@ -48,14 +48,14 @@ absolute step between consecutive terms is always exactly `n`
 ## Project Structure
 
 ```
-recaman-sequence/
+recaman-simulation/
 ├── README.md
 ├── requirements.txt
 ├── main.py                  # CLI entry point (argparse)
 ├── core/
 │   ├── __init__.py
 │   ├── sequence.py          # Sequence generation (list + lazy generator)
-│   ├── visualizer.py        # Arc-based matplotlib visualization + animation
+│   ├── visualizer.py        # Arc, scatter, frequency, line, and animation
 │   ├── analyzer.py          # Statistical and number-theoretic analysis
 │   └── audio.py             # Sonification (audification) to WAV
 ├── utils/
@@ -71,37 +71,11 @@ recaman-sequence/
 | Module | Responsibility |
 |---|---|
 | `core/sequence.py` | Generate the sequence. Uses an auxiliary `set` for O(1) membership tests, giving overall **O(n)** time and O(n) memory. The naive `proposal not in list` check degrades to O(n²). |
-| `core/visualizer.py` | Draw the classic Edmund-Harriss arc visualization (alternating semicircles) and produce animated GIFs. |
+| `core/visualizer.py` | Draw various visualizations: classic arcs, scatter plots, frequency mappings, and line charts. Produces animated GIFs with dynamic zoom and speed control. |
 | `core/analyzer.py` | Compute basic statistics, find missing integers (relevant to the open coverage conjecture), and track first-occurrence indices. |
 | `core/audio.py` | Map sequence values to frequencies on a chromatic (or alternative) scale and render a WAV file. |
 | `utils/io.py` | Persist / load sequences as CSV or JSON. |
 | `main.py` | Argparse-based CLI exposing every feature. |
-
----
-
-## Installation
-
-```bash
-git clone <your-repo-url> recaman-simulation
-cd recaman-simulation
-
-python -m venv .venv
-source .venv/bin/activate        # on Windows: .venv\Scripts\activate
-
-pip install -r requirements.txt
-```
-
-### `requirements.txt`
-
-```
-numpy>=1.24
-matplotlib>=3.7
-scipy>=1.10
-tqdm>=4.65
-```
-
-Requires **Python 3.10+** (uses `set` / `dict` typing syntax and
-`str | Path` union types).
 
 ---
 
@@ -116,14 +90,26 @@ python -m main --help
 ### Generate and visualize
 
 ```bash
-# Plot the first 100 terms and display the figure
+# Plot the first 100 terms with alternating colors and display
 python -m main -n 100 --png outputs/r100.png --stats --show
 
-# Save a 500-term animation
-python -m main -n 500 --gif outputs/anim.gif
+# Plot a vibrant rainbow arc visualization
+python -m main -n 200 --png outputs/rainbow_200.png --rainbow
 
-# Sonify 200 terms
-python -m main -n 200 --wav outputs/recaman.wav
+# Save a dynamic animation where the camera follows the sequence step-by-step
+python -m main -n 100 --gif outputs/dynamic_rainbow_100.gif --dynamic --rainbow
+
+# Create a slow animation (200ms delay between frames)
+python -m main -n 100 --gif outputs/slow_100.gif --dynamic --interval 200
+
+# Generate a scatter plot for 1,000,000 terms (efficient for large N)
+python -m main -n 1000000 --scatter outputs/scatter_1M.png
+
+# Plot the sequence values mapped to musical frequencies
+python -m main -n 200 --freq outputs/freq_200.png --wav outputs/recaman_200.wav
+
+# Plot a standard line chart of raw values
+python -m main -n 100 --line outputs/line_100.png
 
 # Export 10,000 terms and check which integers in [0, 200) are missing
 python -m main -n 10000 --csv outputs/seq.csv --missing 200
@@ -136,12 +122,39 @@ python -m main -n 10000 --csv outputs/seq.csv --missing 200
 | `-n, --terms INT` | Number of terms to generate (default: `100`). |
 | `--csv PATH` | Write the sequence to a CSV file (`index,value`). |
 | `--json PATH` | Write the sequence to a JSON file. |
-| `--png PATH` | Save the arc visualization as a PNG image. |
+| `--png PATH` | Save the classic arc visualization as a PNG image. |
+| `--scatter PATH` | Save a scatter plot (recommended for large N > 10,000). |
+| `--freq PATH` | Save a frequency mapping plot (visualizes sonification data). |
+| `--line PATH` | Save a connected line plot of raw values vs. index. |
 | `--gif PATH` | Save an animated GIF of the arcs being drawn. |
 | `--wav PATH` | Sonify the sequence into a WAV audio file. |
+| `--rainbow` | Color each arc with a different vibrant color based on its index. |
+| `--dynamic` | Dynamic zoom-out for GIFs. The camera view expands step-by-step. |
+| `--interval INT` | Delay between frames in GIF in milliseconds (default: `50`, lower=faster, higher=slower). |
 | `--stats` | Print summary statistics (min, max, mean, std, unique count). |
 | `--missing K` | Print integers in `[0, K)` that do **not** appear in the sequence. |
 | `--show` | Display the matplotlib window interactively. |
+
+---
+
+## Sample Outputs
+
+Here are some examples of what the simulator can produce. *(Replace these with your own generated image links)*
+
+### 1. Classic Arc Visualization (PNG)
+Standard alternating top/bottom arcs over a number line.
+
+### 2. Dynamic Rainbow Animation (GIF)
+The camera starts zoomed in and dynamically zooms out as the sequence grows.
+![Dynamic Rainbow GIF](outputs/dynamic_rainbow_100.gif)
+
+### 3. Scatter Plot (PNG)
+Efficient visualization for large N (e.g., 1,000,000 terms).
+![Scatter Plot 1M](outputs/scatter_1M.png)
+
+### 4. Line Plot (PNG)
+Raw values of the sequence plotted as a connected line chart.
+![Line Plot](outputs/line_100.png)
 
 ---
 
@@ -183,6 +196,10 @@ the total cost to **O(n)**. This matters sharply when `n` grows past ~10⁴:
 | 10,000 | ~4 s | ~0.01 s |
 | 100,000 | ~7 min | ~0.1 s |
 
+### Dynamic Zoom Logic
+
+In Recamán's sequence, the step size at iteration `n` is exactly `n`. Therefore, the radius of the arc drawn at step `n` is always `n/2`. The `--dynamic` flag leverages this mathematical property: at frame `i`, it calculates the maximum value reached so far and sets the y-axis limits to `±(i/2)`, creating a smooth, step-by-step camera movement that perfectly tracks the drawing.
+
 ### High-water marks
 
 The points where the sequence reaches a new maximum are themselves an OEIS
@@ -194,11 +211,10 @@ sequence (the "high-water marks"): `1, 4, 131, 99734, 181653, ...`
 
 1. **Generalized Recamán sequences** — Implement the "cousins" described by
    Alekseyev, Myers, Schroeppel, Shannon, Sloane, and Zimmermann, such as
-   *Blanes-Mollís* or the doubly-additive variant.【turn0search2】
+   *Blanes-Mollís* or the doubly-additive variant.
 2. **Coverage-conjecture experiments** — Generate 10⁵–10⁶ terms, partition
    `[0, K)` into buckets, and track how the set of missing integers evolves.
    Useful empirical evidence for the open conjecture.
-
 3. **Performance benchmarking** — Compare the naive O(n²) implementation
    against the `set`-based O(n) version and plot runtime vs. `n`.
 4. **Interactive web visualization** — Port `visualizer.py` to `p5.js` for a
@@ -259,3 +275,4 @@ python -m unittest discover tests
 | **Christian Hill (scipython)** | [scipython.com/blog/recamans-sequence](https://scipython.com/blog/recamans-sequence) | A clean Python implementation using the walrus operator (`:=`) and matplotlib for the arc drawing. |
 | **Rosetta Code** | [rosettacode.org/wiki/Recaman's_sequence](https://rosettacode.org/wiki/Recaman%27s_sequence) | Implementations of the sequence generator in dozens of different programming languages. |
 | **ignaeche/recaman-sequence (GitHub)** | [github.com/ignaeche/recaman-sequence](https://github.com/ignaeche/recaman-sequence) | A Python 3 script for generating images and animations of the sequence using matplotlib and tqdm. |
+
