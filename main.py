@@ -22,12 +22,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--line", type=Path, help="save connected line plot (values vs index) to PNG")
     p.add_argument("--gif", type=Path, help="save animation to GIF")
     p.add_argument("--wav", type=Path, help="sonify sequence to WAV")
-    p.add_argument("--rainbow", action="store_true", help="Color each arc with a different rainbow color")
+    p.add_argument("--rainbow", action="store_true", help="Color each arc with a beautiful rainbow spectrum")
+    p.add_argument("--dark", action="store_true", help="Use dark mode for visualizations")
     p.add_argument("--dynamic", action="store_true", help="Dynamic zoom-out for GIF (camera follows the sequence step-by-step)")
-    
     p.add_argument("--interval", type=int, default=50,
                    help="delay between frames in GIF in milliseconds (default: 50, lower=faster, higher=slower)")
-    
     p.add_argument("--stats", action="store_true", help="print statistics")
     p.add_argument("--missing", type=int, metavar="K",
                    help="print integers in [0,K) missing from the sequence")
@@ -58,30 +57,30 @@ def main() -> None:
     
     if args.png:
         print("Drawing arc visualization...")
-        fig = plot_sequence(seq, rainbow=args.rainbow)
+        fig = plot_sequence(seq, rainbow=args.rainbow, dark=args.dark)
         save_path = output_dir / args.png
-        fig.savefig(save_path, dpi=150, bbox_inches='tight')
+        fig.savefig(save_path, dpi=150, bbox_inches='tight', facecolor=fig.get_facecolor())
         print(f"Saved arc plot to {save_path}")
         
     if args.scatter:
         print("Drawing scatter plot...")
-        fig_s = plot_scatter(seq)
+        fig_s = plot_scatter(seq, dark=args.dark)
         save_path = output_dir / args.scatter
-        fig_s.savefig(save_path, dpi=200)
+        fig_s.savefig(save_path, dpi=200, facecolor=fig_s.get_facecolor())
         print(f"Saved scatter plot to {save_path}")
         
     if args.freq:
         print("Drawing frequency plot...")
-        fig_f = plot_frequency(seq)
+        fig_f = plot_frequency(seq, dark=args.dark)
         save_path = output_dir / args.freq
-        fig_f.savefig(save_path, dpi=150)
+        fig_f.savefig(save_path, dpi=150, facecolor=fig_f.get_facecolor())
         print(f"Saved frequency plot to {save_path}")
         
     if args.line:
         print("Drawing line plot...")
-        fig_l = plot_line(seq)
+        fig_l = plot_line(seq, dark=args.dark)
         save_path = output_dir / args.line
-        fig_l.savefig(save_path, dpi=150)
+        fig_l.savefig(save_path, dpi=150, facecolor=fig_l.get_facecolor())
         print(f"Saved line plot to {save_path}")
         
     if args.gif:
@@ -92,6 +91,7 @@ def main() -> None:
             save_path=str(save_path), 
             rainbow=args.rainbow, 
             dynamic=args.dynamic,
+            dark=args.dark,
             interval_ms=args.interval
         )
         print(f"Saved GIF to {save_path}")
@@ -111,7 +111,7 @@ def main() -> None:
     if args.show:
         import matplotlib.pyplot as plt
         if not (args.png or args.scatter or args.freq or args.line):
-            plot_sequence(seq, rainbow=args.rainbow)
+            plot_sequence(seq, rainbow=args.rainbow, dark=args.dark)
         plt.show()
 
 

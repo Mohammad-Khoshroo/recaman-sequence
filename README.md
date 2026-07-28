@@ -268,11 +268,3 @@ python -m unittest discover tests
 | **Numberphile: The Slightly Spooky Recamán Sequence** | [youtube.com/watch?v=DhFZfzOvNTU](https://www.youtube.com/watch?v=DhFZfzOvNTU) | The viral Numberphile video featuring Edmund Harriss, which popularized the sequence and its arc visualization. |
 | **The Coding Train: Coding Challenge #110** | [thecodingtrain.com/challenges/110-recamans-sequence](https://thecodingtrain.com/challenges/110-recamans-sequence) | Daniel Shiffman's implementation of the visualization and sonification in JavaScript (p5.js). Great for porting concepts. |
 | **Mr. P Solver: This Sequence of Numbers SOUNDS Good** | [youtube.com/watch?v=aGVWXhINpTE](https://www.youtube.com/watch?v=aGVWXhINpTE) | A detailed Python tutorial on sonifying the sequence using different musical scales. |
-
-### 5. Code Repositories & Implementations
-| Resource | Link | Description |
-|:---|:---|:---|
-| **Christian Hill (scipython)** | [scipython.com/blog/recamans-sequence](https://scipython.com/blog/recamans-sequence) | A clean Python implementation using the walrus operator (`:=`) and matplotlib for the arc drawing. |
-| **Rosetta Code** | [rosettacode.org/wiki/Recaman's_sequence](https://rosettacode.org/wiki/Recaman%27s_sequence) | Implementations of the sequence generator in dozens of different programming languages. |
-| **ignaeche/recaman-sequence (GitHub)** | [github.com/ignaeche/recaman-sequence](https://github.com/ignaeche/recaman-sequence) | A Python 3 script for generating images and animations of the sequence using matplotlib and tqdm. |
-
