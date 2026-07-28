@@ -1,8 +1,4 @@
-"""Arc-based visualization of Recamán's sequence.
-
-Consecutive terms are joined by semicircular arcs alternating above and
-below the number line (Edmund Harriss' popular visualization).
-"""
+"""Arc-based and scatter visualizations of Recamán's sequence."""
 from __future__ import annotations
 from typing import Sequence
 import numpy as np
@@ -56,3 +52,26 @@ def animate_sequence(seq, interval_ms: int = 50, save_path: str | None = None):
     if save_path:
         anim.save(save_path, writer="pillow")
     return anim
+
+
+def plot_scatter(seq: Sequence[int], 
+                 title: str = "Recamán's Sequence Scatter Plot") -> plt.Figure:
+    """
+    Render the sequence as a scatter plot.
+    Highly efficient for large N (e.g., N > 10,000) where arcs would
+    overlap completely or crash the memory.
+    """
+    x = np.arange(len(seq))
+    y = np.asarray(seq, dtype=np.int64)
+    
+    fig, ax = plt.subplots(figsize=(10, 8))
+    # s=0.5 makes the dots very small so dense areas form patterns
+    # alpha=0.6 helps visualize overlapping density
+    ax.scatter(x, y, s=0.5, color="navy", alpha=0.6) 
+    
+    ax.set_title(f"{title} (N = {len(seq)})")
+    ax.set_xlabel("n (Index)")
+    ax.set_ylabel("a(n) (Value)")
+    ax.grid(True, linestyle=':', alpha=0.5)
+    fig.tight_layout()
+    return fig

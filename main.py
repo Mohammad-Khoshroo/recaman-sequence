@@ -4,7 +4,7 @@ import argparse
 from pathlib import Path
 
 from core.sequence import recaman
-from core.visualizer import plot_sequence, animate_sequence
+from core.visualizer import plot_sequence, animate_sequence, plot_scatter
 from core.analyzer import basic_stats, missing_integers
 from core.audio import sonify
 from utils.io import save_csv, save_json
@@ -17,6 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--csv", type=Path, help="write sequence to CSV")
     p.add_argument("--json", type=Path, help="write sequence to JSON")
     p.add_argument("--png", type=Path, help="save arc visualization to PNG")
+    p.add_argument("--scatter", type=Path, help="save scatter plot to PNG (recommended for large N)")
     p.add_argument("--gif", type=Path, help="save animation to GIF")
     p.add_argument("--wav", type=Path, help="sonify sequence to WAV")
     p.add_argument("--stats", action="store_true", help="print statistics")
@@ -28,24 +29,63 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_parser().parse_args()
+    
+    print(f"Generating {args.terms} terms of Recamán's sequence...")
     seq = recaman(args.terms)
+    print("Generation complete.")
 
-    if args.csv:  save_csv(seq, args.csv)
-    if args.json: save_json(seq, args.json)
+    # Create output directory if it doesn't exist
+    output_dir = Path("outputs")
+    output_dir.mkdir(exist_ok=True)
+
+    if args.csv:  
+        save_path = output_dir / args.csv
+        save_csv(seq, save_path)
+        print(f"Saved CSV to {save_path}")
+        
+    if args.json: 
+        save_path = output_dir / args.json
+        save_json(seq, save_path)
+        print(f"Saved JSON to {save_path}")
+    
     if args.png:
+        print("Drawing arc visualization...")
         fig = plot_sequence(seq)
-        fig.savefig(args.png, dpi=150)
+        save_path = output_dir / args.png
+        fig.savefig(save_path, dpi=150)
+        print(f"Saved arc plot to {save_path}")
+        
+    if args.scatter:
+        print("Drawing scatter plot...")
+        fig_s = plot_scatter(seq)
+        save_path = output_dir / args.scatter
+        fig_s.savefig(save_path, dpi=200)
+        print(f"Saved scatter plot to {save_path}")
+        
     if args.gif:
-        animate_sequence(seq, save_path=str(args.gif))
-    if args.wav:  sonify(seq, out_path=str(args.wav))
+        save_path = output_dir / args.gif
+        animate_sequence(seq, save_path=str(save_path))
+        print(f"Saved GIF to {save_path}")
+        
+    if args.wav:  
+        save_path = output_dir / args.wav
+        sonify(seq, out_path=str(save_path))
+        print(f"Saved WAV to {save_path}")
+        
     if args.stats:
         for k, v in basic_stats(seq).items():
             print(f"{k:>10}: {v}")
+            
     if args.missing:
         print("missing:", missing_integers(seq, args.missing))
+        
     if args.show:
         import matplotlib.pyplot as plt
-        plot_sequence(seq)
+        # Show whichever plot was generated last, or default to arc
+        if args.scatter:
+            plot_scatter(seq)
+        else:
+            plot_sequence(seq)
         plt.show()
 
 
