@@ -91,28 +91,28 @@ python -m main --help
 
 ```bash
 # Plot the first 100 terms with alternating colors and display
-python -m main -n 100 --png outputs/r100.png --stats --show
+python -m main -n 100 --png r100.png --stats --show
 
 # Plot a vibrant rainbow arc visualization
-python -m main -n 200 --png outputs/rainbow_200.png --rainbow
+python -m main -n 200 --png rainbow_200.png --rainbow
 
 # Save a dynamic animation where the camera follows the sequence step-by-step
-python -m main -n 100 --gif outputs/dynamic_rainbow_100.gif --dynamic --rainbow
+python -m main -n 100 --gif dynamic_rainbow_100.gif --dynamic --rainbow
 
 # Create a slow animation (200ms delay between frames)
-python -m main -n 100 --gif outputs/slow_100.gif --dynamic --interval 200
+python -m main -n 100 --gif slow_100.gif --dynamic --interval 200
 
 # Generate a scatter plot for 1,000,000 terms (efficient for large N)
-python -m main -n 1000000 --scatter outputs/scatter_1M.png
+python -m main -n 1000000 --scatter scatter_1M.png
 
 # Plot the sequence values mapped to musical frequencies
-python -m main -n 200 --freq outputs/freq_200.png --wav outputs/recaman_200.wav
+python -m main -n 200 --freq freq_200.png --wav recaman_200.wav
 
 # Plot a standard line chart of raw values
-python -m main -n 100 --line outputs/line_100.png
+python -m main -n 100 --line line_100.png
 
 # Export 10,000 terms and check which integers in [0, 200) are missing
-python -m main -n 10000 --csv outputs/seq.csv --missing 200
+python -m main -n 10000 --csv seq.csv --missing 200
 ```
 
 ### CLI reference
